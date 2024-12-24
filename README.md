@@ -1,6 +1,8 @@
 # Music Subgenre Classification Using Deep-Learning and Traditional Machine-Learning Approaches
 
-[View the PDF](/report/report.pdf))
+[View the PDF](/report/report.pdf)
+
+This paper and project, aims to find how accurate machine learning classifiers are within metal subgenres. Additionally, it can be asked if there is any significant confusion among subgenres over multiple classifiers.
 
 ## Installation
 

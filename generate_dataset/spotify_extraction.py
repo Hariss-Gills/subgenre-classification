@@ -1,14 +1,15 @@
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-from dotenv import load_dotenv
-from io import BytesIO
-import pandas as pd
-from typing import Any
-import numpy as np
 import os
+from io import BytesIO
+from typing import Any
+
 import librosa
-import requests
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import requests
+import spotipy
+from dotenv import load_dotenv
+from spotipy.oauth2 import SpotifyClientCredentials
 
 METAL_SUBGENRES = [
     "Black",
@@ -53,15 +54,16 @@ SLICE_DURATION = 3
 load_dotenv()
 sp = spotipy.Spotify(
     auth_manager=SpotifyClientCredentials(
-        client_id=os.environ["CLIENT_ID_ZK"],
-        client_secret=os.environ["CLIENT_SECRET_ZK"],
+        client_id=os.environ["CLIENT_ID"],
+        client_secret=os.environ["CLIENT_SECRET"],
     )
 )
 
 
-def mean_plus_variance(feature: np.ndarray) -> float:
+def mean_plus_variance(feature: np.ndarray) -> np.float64:
     """
-    Calculate the sum of the mean and the variance (square of the standard deviation)
+    Calculate the sum of the mean and the variance
+    (square of the standard deviation)
     of a numeric feature array.
 
     Args:
@@ -73,19 +75,23 @@ def mean_plus_variance(feature: np.ndarray) -> float:
     return np.mean(feature) + np.std(feature) ** 2
 
 
-def extract_features(slice_data: np.ndarray, sr: int) -> dict[str, Any]:
+def extract_features(
+    slice_data: np.ndarray, sr: int | float
+) -> dict[str, Any]:
     """
     Extract audio features from a given slice of audio data.
 
     Args:
         slice_data (np.ndarray): Audio slice data.
-        sr (int): Sampling rate.
+        sr (int | float): Sampling rate.
 
     Returns:
         Dict[str, Any]: A dictionary of computed audio features.
     """
     return {
-        "Chroma": mean_plus_variance(librosa.feature.chroma_stft(y=slice_data, sr=sr)),
+        "Chroma": mean_plus_variance(
+            librosa.feature.chroma_stft(y=slice_data, sr=sr)
+        ),
         "RMS": mean_plus_variance(librosa.feature.rms(y=slice_data)),
         "Spectral Centroid": mean_plus_variance(
             librosa.feature.spectral_centroid(y=slice_data, sr=sr)
@@ -109,14 +115,16 @@ def extract_features(slice_data: np.ndarray, sr: int) -> dict[str, Any]:
 
 def get_top_100_tracks_for_all_subgenres(subgenres: list[str]) -> pd.DataFrame:
     """
-    Retrieves the top 100 tracks for each given subgenre from Spotify playlists.
-    Since we are processing lots of data, if an error occurs we return the DataFrame anyway.
+    Retrieves the top 100 tracks for each given subgenre from
+    Spotify playlists. Since we are processing lots of data,
+    if an error occurs we return the DataFrame anyway.
 
     Args:
         subgenres (List[str]): A list of subgenres to search for.
 
     Returns:
-        pd.DataFrame: A DataFrame containing track IDs and their associated subgenres.
+        pd.DataFrame: A DataFrame containing track IDs and their
+        associated subgenres.
     """
     labelled_tracks = []
     try:
@@ -125,11 +133,15 @@ def get_top_100_tracks_for_all_subgenres(subgenres: list[str]) -> pd.DataFrame:
                 q=f"{subgenre} Metal", type="playlist", limit=MAX_PLAYLISTS
             )
 
+            if playlist_results is None:
+                playlist_results = {}
+
             selected_playlist_id = next(
                 (
                     playlist["id"]
                     for playlist in playlist_results["playlists"]["items"]
                     if playlist["tracks"]["total"] >= MIN_TRACKS_IN_PLAYLIST
+                    and playlist["id"] in playlist_results
                 ),
                 None,
             )
@@ -137,6 +149,10 @@ def get_top_100_tracks_for_all_subgenres(subgenres: list[str]) -> pd.DataFrame:
             playlist_tracks = sp.playlist_tracks(
                 selected_playlist_id, limit=TOP_TRACKS_LIMIT
             )
+
+            if playlist_tracks is None:
+                playlist_tracks = {}
+
             track_list = [
                 track["track"]
                 for track in playlist_tracks["items"]
@@ -155,7 +171,9 @@ def get_top_100_tracks_for_all_subgenres(subgenres: list[str]) -> pd.DataFrame:
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
-        return pd.DataFrame(labelled_tracks, columns=["Track ID", "Subgenre"])
+        return pd.DataFrame(
+            labelled_tracks, columns=pd.Series(["Track ID", "Subgenre"])
+        )
 
 
 def extract_audio_features_from_preview(
@@ -163,7 +181,8 @@ def extract_audio_features_from_preview(
 ) -> pd.DataFrame:
     """
     Extract audio features (MEAN + SD²) for 3-second slices of preview URLs.
-    Since we are processing lots of data, if an error occurs we return the DataFrame anyway.
+    Since we are processing lots of data, if an error occurs we return
+    the DataFrame anyway.
     Args:
         df (pd.DataFrame): DataFrame with columns "Track ID" and "Subgenre".
         start_index (int): Index to start processing from (default is 0).
@@ -180,7 +199,10 @@ def extract_audio_features_from_preview(
             subgenre = row["Subgenre"]
 
             track_details = sp.track(track_id)
-            preview_url = track_details.get("preview_url")
+            preview_url = None
+
+            if track_details:
+                preview_url = track_details.get("preview_url")
 
             if not preview_url:
                 print(f"No preview URL for track {track_id}")
@@ -195,17 +217,25 @@ def extract_audio_features_from_preview(
             for i in range(num_slices):
                 start_sample = i * SLICE_DURATION * sr
                 end_sample = start_sample + SLICE_DURATION * sr
-                slice_data = y[int(start_sample) : int(end_sample)]
+                slice_data = y[
+                    int(start_sample) : int(end_sample)  # noqa: E203
+                ]
                 features = extract_features(slice_data, sr)
                 features.update(
-                    {"Track ID": track_id, "Subgenre": subgenre, "Slice": i + 1}
+                    {
+                        "Track ID": track_id,
+                        "Subgenre": subgenre,
+                        "Slice": i + 1,
+                    }
                 )
                 feature_results.append(features)
 
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
-        return pd.DataFrame(feature_results, columns=FEATURE_COLUMNS)
+        return pd.DataFrame(
+            feature_results, columns=pd.Series(FEATURE_COLUMNS)
+        )
 
 
 def plot_feature_differences_per_label(features_df):
@@ -213,17 +243,15 @@ def plot_feature_differences_per_label(features_df):
     Plots the differences in audio features for each subgenre.
 
     Args:
-        features_df (pd.DataFrame): DataFrame containing audio features and their associated subgenres.
+        features_df (pd.DataFrame): DataFrame containing audio features
+        and their associated subgenres.
     """
-    # Extract numeric features and group by subgenre
     feature_columns = features_df.columns.drop("Subgenre")
     grouped = features_df.groupby("Subgenre")[feature_columns]
 
-    # Calculate mean and standard deviation for each feature per subgenre
     mean_features = grouped.mean()
     std_features = grouped.std()
 
-    # Create subplots for each feature
     plt.figure(figsize=(20, len(feature_columns) * 4))
     for i, feature in enumerate(feature_columns, start=1):
         plt.subplot(len(feature_columns), 1, i)
@@ -242,4 +270,19 @@ def plot_feature_differences_per_label(features_df):
         plt.legend(loc="upper right")
 
     plt.tight_layout()
-    plt.savefig("feature_differences_per_label.png", dpi=300, bbox_inches="tight")
+    plt.savefig(
+        "./results/feature_differences_per_label.png",
+        dpi=300,
+        bbox_inches="tight",
+    )
+
+
+def main():
+    tracks_df = get_top_100_tracks_for_all_subgenres(METAL_SUBGENRES)
+    tracks_df.to_csv("./results/tracks.csv")
+    features_df = extract_audio_features_from_preview(tracks_df)
+    features_df.to_csv("./results/audio_features.csv")
+
+
+if __name__ == "__main__":
+    main()

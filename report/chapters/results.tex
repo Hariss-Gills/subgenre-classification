@@ -1,0 +1,56 @@
+\section{Results}
+The SVM classifier did not finish running and would ignore \verb|SIGINT| (signal interrupts), hence, it was omitted from the results.
+
+\subsection{First Hypothesis}
+The P-values of the Shapiro-Wilk Test in Table \ref{tab:model_performance_percentages} suggest that the accuracy values are normally distributed (P-value \(>0.05\)). Hence, a one-way ANOVA test is done, which has P-value of \num{3.44988e-166}. This shows that there is a significant difference between the models' accuracies. Lastly, using the results from Tukey HSD, which shows that every pairwise comparison is significant, it can be found that k-NN is only significantly more accurate than MLP. Consequently, the first null hypothesis cannot be rejected.
+
+\begin{table}[h!]
+\centering
+\hspace*{-1cm}
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\textbf{Model} & \textbf{Accuracy Mean (\%)} & \textbf{Accuracy Std} & \textbf{F1 Score Mean (\%)} & \textbf{F1 Score Std} & \textbf{P-value} \\ \hline
+Logistic Regression & 12.6 & 0.006592 & 8.2 & 0.004979 & 0.28361 \\  \hline
+Random Forest       & 18.9 & 0.006340 & 10.7 & 0.005235 &  0.13833 \\ \hline
+k-NN                & 10.5 & 0.004985 & 11.2 & 0.005436 & 0.26110 \\ \hline
+Naïve Bayes         & 14.0 & 0.006732 & 10.6 & 0.006701 & 0.62132\\ \hline
+MLP                 & 4.3  & 0.002944 & 0.8  & 0.001565 & 0.49957 \\ \hline
+Deep                & 15.7 & 0.008363 & 12.5 & 0.008596 & 0.11413\\ \hline
+\end{tabular}
+\caption{Performance Metrics of Models and P-values of Shapiro-Wilk Test}
+\label{tab:model_performance_percentages}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|l|c|c|c|c|c|}
+\hline
+\textbf{Group 1} & \textbf{Group 2} & \textbf{Mean Diff} & \textbf{p-adj} & \textbf{Lower} & \textbf{Upper} & \textbf{Reject} \\ \hline
+Deep & Logistic Regression & -0.0308 & 0.0 & -0.0351 & -0.0265 & True \\ \hline
+Deep & MLP & -0.1135 & 0.0 & -0.1178 & -0.1092 & True \\ \hline
+Deep & Naïve Bayes & -0.0172 & 0.0 & -0.0215 & -0.0129 & True \\ \hline
+Deep & Random Forest & 0.0326 & 0.0 & 0.0283 & 0.0369 & True \\ \hline
+Deep & k-NN & -0.052 & 0.0 & -0.0563 & -0.0477 & True \\ \hline
+Logistic Regression & MLP & -0.0826 & 0.0 & -0.0876 & -0.0777 & True \\ \hline
+Logistic Regression & Naïve Bayes & 0.0136 & 0.0 & 0.0087 & 0.0186 & True \\ \hline
+Logistic Regression & Random Forest & 0.0635 & 0.0 & 0.0585 & 0.0684 & True \\ \hline
+Logistic Regression & k-NN & -0.0212 & 0.0 & -0.0262 & -0.0163 & True \\ \hline
+MLP & Naïve Bayes & 0.0963 & 0.0 & 0.0913 & 0.1012 & True \\ \hline
+MLP & Random Forest & 0.1461 & 0.0 & 0.1411 & 0.151 & True \\ \hline
+MLP & k-NN & 0.0614 & 0.0 & 0.0565 & 0.0664 & True \\ \hline
+Naïve Bayes & Random Forest & 0.0498 & 0.0 & 0.0449 & 0.0548 & True \\ \hline
+Naïve Bayes & k-NN & -0.0348 & 0.0 & -0.0398 & -0.0299 & True \\ \hline
+Random Forest & k-NN & -0.0847 & 0.0 & -0.0896 & -0.0797 & True \\ \hline
+\end{tabular}
+\caption{Multiple Comparison of Means - Tukey HSD, FWER=0.05}
+\label{tab:tukey_hsd_test_results}
+\end{table}
+
+\subsection{Second Hypothesis}
+The confusion matrices are available in the appendix from Figure \ref{fig:grid}. The matrix of k-NN and Random Forest both show asymmetric confusions with the following percentages respectively:
+\begin{itemize}
+    \item Symphonic and Folk - 75\%, 46\% 
+    \item Power and Speed - 56\%, 50\%
+\end{itemize}
+
+Therefore, there are two pairs of subgenres with more than 40\% confusion in at least two classifiers. Through qualitative observation, the second null hypothesis is rejected.

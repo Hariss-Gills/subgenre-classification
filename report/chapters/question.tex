@@ -1,0 +1,34 @@
+\section{Research Question}
+As seen in the previous section, works that classify music into genres, often use the same dataset - GTZAN. Although results obtained via GTZAN are still meaningful, GTZAN has issues like repetitions, mislabelings, and distortions \cite{sturm2013gtzan}. An attempt to classify subgenres has been made, but it uses high dimensional inputs which lead to longer training times. This report attempts to identify the most accurate Machine Learning model to classify subgenres in a genre.
+
+The research questions are as follows:
+\begin{enumerate}
+  \item How accurate are machine learning and deep learning classifiers within 18 Metal subgenres?
+  \item Is there any significant confusion among subgenres over multiple classifiers? Is this a potential cause of redundancy in the subgenre?
+\end{enumerate}
+
+Since the k-NN had the highest accuracy in previous works, it is expected to be the  answer to the first question \cite{ndou2021music}. As for the second question, it's highly likely that there will be confusion because of work by \cite{doi:10.1080/09298215.2020.1761399}, and the intuitive overlap caused by subgenres evolving from one another.
+
+The hypotheses naturally flow as follows:
+\begin{enumerate}
+  \item k-NN is the most accurate machine learning model to classify 18 Metal subgenres.
+  \item There is more than 40\% confusion between two subgenres over at least two classifiers. This will be done qualitatively.
+\end{enumerate}
+
+\subsection{Models}
+In order to answer the above questions, an experiment will be conducted that adopts a similar strategy as \textit{Phase C} in the work done by Ndou et al., but with a different dataset \cite{ndou2021music}. We utilize Linear Logistic Regression, Random Forest, Support Vector Machines, Multilayer Perceptron, k-Nearest Neighbour, and Naíve Bayes models from the \verb|scikit-learn library| \cite{pedregosa2011scikit}. For the deep learning approach, the Convolutional Neural Network (CNN) model architecture is reused. This model includes an input layer followed by five convolutional blocks with a ReLU activation function \cite{gulli2017deep}.
+
+\subsection{Audio Features}
+\verb|librosa| is a common and powerful tool to analyse audio \cite{mcfee2015librosa}. The mean and variance of the following types of features are extracted:
+\begin{itemize}
+    \item Magnitude-based: Represent timbral qualities like loudness, pitch, and compactness.
+    \item Tempo-base: Capture rhythm and tempo characteristics, such as beats per minute and audio signal intensity.
+    \item Pitch-based: Describe pitch aspects, contributing to harmony, key, and melody.
+    \item Chordal progression features: Examine pitch chroma, representing pitch classes in a twelve-dimensional vector.
+\end{itemize}
+
+\subsection{Dataset}
+Many sources were considered for gathering metal tracks, but the Spotify Web API stood out as the most flexible and representative of what metal fans listen to compared to other platforms. While the Free Music Archive does offer some metal tracks, it does not truly capture the broader range of what fans of the genre enjoy. To create a comprehensive dataset using python, spotipy, which is a lightweight Python library for the Spotify Web API, is utilized. Unlike Beatport, Spotify offers 30-second previews of music hosted on its platform, making it a more valuable resource for accessing popular metal tracks from the subgenres listed on \href{https://www.metal-archives.com/}{"The Metal Archive"} \cite{archer2021metaldata}. Unfortunately, the API only provides genre per artist not by track. Playlists titled "{\verb|Subgenre|} Mix" playlists need to be avoided since they are curated on per-user basis. So for each subgenre, the most popular public Spotify playlist with at least 100 tracks is used.
+
+\subsection{Accuracy}
+Since the tracks in each subgenre are of equal lengths, the amount of 3 second slices per subgenre should be balanced. However, some tracks might be unavailable to preview. Hence, the F1 score is also calculated \cite{jeni2013facing}.

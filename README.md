@@ -18,7 +18,7 @@ pip install -r requirements.txt
 
 ## Usage
 
-By default, all of the tasks and imports related to cross validation and generating the dataset are commented out. You can uncomment out the distinct tasks within main.py to run specific tasks.
+By default, all of the tasks and imports related to cross validation and generating the dataset are commented out. You can uncomment out the distinct tasks within main.py.
 
 ```bash
 python main.py

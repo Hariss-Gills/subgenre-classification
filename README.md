@@ -1,6 +1,6 @@
 # Music Subgenre Classification Using Deep-Learning and Traditional Machine-Learning Approaches
 
-(https://docs.google.com/viewer?url=https://github.com/Hariss-Gills/subgenre-classification/blob/c13b7e63dd181e500ef3bb9366c72bb6d8a94868/report/report.pdf)
+[View the PDF](/report/report.pdf))
 
 ## Installation
 
